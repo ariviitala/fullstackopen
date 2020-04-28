@@ -11,17 +11,18 @@ const Header = (props) => {
 
 const Part = (props) => {
     return (
-      <div><p>{props.part.name} {props.part.exercises}</p></div>
+      <div>
+        <p>{props.part.name} {props.part.exercises}</p>
+      </div>
     )
   
   }
   
 const Content = (props) => {
-  const parts = props.course.parts
-  const content = parts.map(part => <div><Part part={part}/></div>)
+  
   return (
     <div>
-      {content}
+      {props.parts.map(part => <Part key={part.name} part={part}/>)}
     </div>
   )
 
@@ -46,7 +47,7 @@ const Course = (props) => {
   return (
     <div>
       <Header course={props.course} />
-      <Content course={props.course} />
+      <Content parts={props.course.parts} />
       <Total course={props.course} />
     </div>
   )
