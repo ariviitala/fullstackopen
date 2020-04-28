@@ -3,7 +3,7 @@ import React from 'react'
 const Header = (props) => {
     return (
     <div>
-      <h1>{props.course.name}</h1>
+      <h2>{props.course.name}</h2>
     </div>
     )
   
@@ -16,37 +16,41 @@ const Part = (props) => {
   
   }
   
-  const Content = (props) => {
-    const parts = props.course.parts
-    
-    return (
-      <div>
-        parts.map(part => <div><Part part={part}/></div>)
-      </div>
-    )
+const Content = (props) => {
+  const parts = props.course.parts
+  const content = parts.map(part => <div><Part part={part}/></div>)
+  return (
+    <div>
+      {content}
+    </div>
+  )
+
+}
+
+
+
+const Total = (props) => {
   
-  }
+  const sum = props.course.parts.reduce((a, b) => a + b.exercises, 0)
   
-  const Total = (props) => {
-    const parts = props.course.parts
-    return (
-      <div>
-        Number of exercises {parts[0].exercises + parts[1].exercises + parts[2].exercises}
-      </div>
-    )
-  }
+  return (
+    <div>
+      <b>total of exercises {sum}</b>
+    </div>
+  )
+}
 
-  const Course = (props) => {
+const Course = (props) => {
 
 
-    return (
-      <div>
-        <Header course={props.course} />
-        <Content course={props.course} />
-        <Total course={props.course} />
-      </div>
-    )
+  return (
+    <div>
+      <Header course={props.course} />
+      <Content course={props.course} />
+      <Total course={props.course} />
+    </div>
+  )
 
-  }
+}
 
-  export default Course
+export default Course
