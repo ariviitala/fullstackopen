@@ -82,9 +82,7 @@ const App = () => {
             console.log(person)
             personService.update(person.id, newPerson)
             .then(response => {
-                //This is not like in the exmpale where the response value from the server was used to update the state of the cahnged contact.
-                //However, the render fails when the response is just a promise and I don't know the proper way to fix that.
-                setPersons(persons.map(p => p.id !== person.id ? p : newPerson))
+                setPersons(persons.map(p => p.id !== person.id ? p : response))
             })
             console.log(persons)
             setNewName('')
