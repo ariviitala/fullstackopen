@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import personService from './services/persons'
 
+const Notification = ({message}) => {
+
+    if (message === null) {
+        return null
+    }
+
+    return (
+        <div className={message.type}>
+            {message.text}
+        </div>
+    )
+}
+
 const ShowPeople = (props) => {
     return (
         <div>
@@ -56,6 +69,14 @@ const App = () => {
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     const [filterString, setFilterString] = useState('')
+    const [message, setMessage] = useState({})
+
+    const displayMessage = (type, text, duration) => {
+        setMessage({text: text, type: type})
+            setTimeout(() => {
+                setMessage(null)
+            }, duration)
+    }
 
     const hook = () => {
         personService.getAll()
@@ -83,18 +104,27 @@ const App = () => {
             personService.update(person.id, newPerson)
             .then(response => {
                 setPersons(persons.map(p => p.id !== person.id ? p : response))
+            }).catch(error => {
+                displayMessage('error', `${newName} was already deleted from server.`, 5000)
+                setPersons(persons.filter(p => p.name !== newName))
             })
             console.log(persons)
+
+            displayMessage('success', `${newName} number updated.`, 5000)
             setNewName('')
             setNewNumber('')
+            
         }
 
         if(!alreadyExists) {
             const newPerson = { name: newName, number: newNumber }
             setPersons(persons.concat(newPerson))
             personService.create(newPerson)
+
+            displayMessage('success', `${newName} added to the phonebook.`, 5000) 
             setNewName('')
             setNewNumber('')
+                 
         }
 
 
@@ -107,6 +137,8 @@ const App = () => {
             console.log(person)
             personService.remove(person.id)
             setPersons(persons.filter(p => p.name !== name))
+            displayMessage('success', `${name} deleted from phonebook.`, 5000)
+            
         }
     }
 
@@ -129,6 +161,7 @@ const App = () => {
     return (
         <div>
             <h1>Phonebook</h1>
+            <Notification message={message}/>
             <h2>Find</h2>
             <Filter value={filterString} changeHandler={filterPersons} />
             <h2>Add New</h2>
