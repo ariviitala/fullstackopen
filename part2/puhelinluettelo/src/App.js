@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
-const Person = (props) => {
+const ShowPeople = (props) => {
     return (
-        <div>{props.name} {props.number}</div>
+        <div>
+            {props.persons.map(p => <Person key={p.name} person={p} deleteHandler={props.deleteHandler}/>)}
+        </div> 
+    )
+} 
+
+const Person = ({person, deleteHandler}) => {
+
+    const submitHandler = (event) => {
+        event.preventDefault()
+        deleteHandler(person.name)
+    }
+
+    return (
+        <div>
+            <form onSubmit={submitHandler}>
+                {person.name} {person.number} <button type="submit">Delete</button>
+            </form>
+        </div>
     )
 }
 
@@ -40,24 +58,57 @@ const App = () => {
     const [filterString, setFilterString] = useState('')
 
     const hook = () => {
-        axios
-            .get('http://localhost:3001/persons')
-            .then(response => {
-                setPersons(response.data)
-            })
+        personService.getAll()
+        .then(people => {
+            setPersons(people)
+        })
     }
 
     useEffect(hook, [])
 
     const addPerson = (event) => {
         event.preventDefault()
-        if (persons.filter(p => p.name === newName).length > 0) {
-            alert(`${newName} is already added to phonebook.`)
-        } else {
-            const newPerson = { name: newName, number: newNumber }
-            setPersons(persons.concat(newPerson))
+
+        const alreadyExists = persons.filter(p => p.name === newName).length > 0
+        let replace = false
+
+        if (alreadyExists) {
+            replace = window.confirm(`${newName} is already added to phonebook. Replace old number with a new one?`)
+        } 
+        
+        if (replace) {
+            const person = persons.find(p => p.name === newName)
+            const newPerson = {...person, number: newNumber}
+            console.log(person)
+            personService.update(person.id, newPerson)
+            .then(response => {
+                //This is not like in the exmpale where the response value from the server was used to update the state of the cahnged contact.
+                //However, the render fails when the response is just a promise and I don't know the proper way to fix that.
+                setPersons(persons.map(p => p.id !== person.id ? p : newPerson))
+            })
+            console.log(persons)
             setNewName('')
             setNewNumber('')
+        }
+
+        if(!alreadyExists) {
+            const newPerson = { name: newName, number: newNumber }
+            setPersons(persons.concat(newPerson))
+            personService.create(newPerson)
+            setNewName('')
+            setNewNumber('')
+        }
+
+
+    }
+
+    const deletePerson = (name) => {
+        const result = window.confirm(`Delete ${name}?`)
+        if (result) {
+            const person = persons.filter(p => p.name === name)[0]
+            console.log(person)
+            personService.remove(person.id)
+            setPersons(persons.filter(p => p.name !== name))
         }
     }
 
@@ -74,6 +125,7 @@ const App = () => {
         setFilterString(event.target.value)
     }
 
+    console.log(persons)
     const personsToShow = persons.filter(p => p.name.toLowerCase().search(filterString.toLowerCase()) !== -1)
 
     return (
@@ -85,7 +137,7 @@ const App = () => {
             <AddContact nameValue={newName} numberValue={newNumber} nameHandler={handlePersonChange}
                 numberHandler={handleNumberChange} submitHandler={addPerson} />
             <h2>Numbers</h2>
-            {personsToShow.map(p => <Person key={p.name} name={p.name} number={p.number} />)}
+            <ShowPeople persons={personsToShow} deleteHandler={deletePerson}/>
         </div>
     )
 
